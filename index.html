@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Slither Arena: Multi-Theme Edition</title>
+  <title>Slither Arena: Royal Safari Edition</title>
   <style>
     * {
       box-sizing: border-box;
@@ -17,14 +17,13 @@
 
     body {
       background: #0f172a;
-      color: #ffffff;
+      color: #f8fafc;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
       padding: 8px;
-      transition: background 0.3s ease;
     }
 
     .arena-wrapper {
@@ -33,45 +32,46 @@
       max-width: 400px;
       height: 94vh;
       max-height: 680px;
-      background: #020617;
-      border: 3px solid #38bdf8;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
-      border-radius: 24px;
+      background: #064e3b;
+      border: 3px solid #d97706;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      border-radius: 22px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      transition: border-color 0.3s ease;
     }
 
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px;
-      background: rgba(15, 23, 42, 0.95);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 16px;
+      background: #062e24;
+      border-bottom: 2px solid #047857;
       font-weight: 800;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       z-index: 5;
     }
 
-    .btn-group {
+    .stat-badge {
       display: flex;
-      gap: 6px;
+      align-items: center;
+      gap: 5px;
     }
 
-    .action-btn {
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #ffffff;
-      border-radius: 10px;
-      padding: 5px 8px;
+    #scoreVal { color: #fbbf24; }
+    #lengthVal { color: #34d399; }
+
+    .audio-btn {
+      background: #064e3b;
+      border: 1px solid #10b981;
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 4px 10px;
       font-size: 0.8rem;
       font-weight: bold;
       cursor: pointer;
     }
-
-    .action-btn:active { transform: scale(0.94); }
 
     canvas {
       display: block;
@@ -86,8 +86,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(8px);
+      background: rgba(4, 30, 24, 0.94);
+      backdrop-filter: blur(6px);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -98,22 +98,75 @@
     }
 
     .overlay.hidden { display: none; }
-    .overlay h2 { font-size: 2rem; color: #38bdf8; margin-bottom: 8px; }
-    .overlay p { color: #cbd5e1; font-size: 0.95rem; margin-bottom: 24px; line-height: 1.4; }
-
-    .play-btn {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      border: none;
-      padding: 15px 40px;
-      font-size: 1.1rem;
-      font-weight: 800;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    
+    .overlay h2 {
+      font-size: 2rem;
+      color: #fbbf24;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
     }
 
-    .play-btn:active { transform: scale(0.95); }
+    .overlay p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 22px;
+    }
+
+    .score-banner {
+      background: rgba(6, 78, 59, 0.8);
+      border: 1px solid #10b981;
+      padding: 8px 24px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #f8fafc;
+      margin-bottom: 24px;
+    }
+
+    .btn-group-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 240px;
+    }
+
+    .modal-btn {
+      border: none;
+      padding: 13px 20px;
+      font-size: 1rem;
+      font-weight: 800;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.08s, opacity 0.1s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-btn:active {
+      transform: scale(0.96);
+      opacity: 0.85;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-secondary {
+      background: #047857;
+      color: #ffffff;
+      border: 1px solid #10b981;
+    }
+
+    .btn-danger {
+      background: #7f1d1d;
+      color: #fecaca;
+      border: 1px solid #dc2626;
+    }
 
     .boost-btn {
       position: absolute;
@@ -122,9 +175,8 @@
       width: 65px;
       height: 65px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(4px);
+      border: 2px solid #fbbf24;
+      background: rgba(217, 119, 6, 0.85);
       color: #fff;
       font-size: 1.5rem;
       font-weight: bold;
@@ -132,38 +184,47 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
       z-index: 10;
     }
 
-    .boost-btn:active { transform: scale(0.9); }
+    .boost-btn:active {
+      transform: scale(0.92);
+      background: #b45309;
+    }
   </style>
 </head>
 <body>
 
-  <div class="arena-wrapper" id="arenaBox">
+  <div class="arena-wrapper">
     <div class="top-bar">
-      <div>⭐ <span id="scoreVal">0</span></div>
-      <div>🐍 LEN: <span id="lengthVal">12</span></div>
-      <div class="btn-group">
-        <button id="themeBtn" class="action-btn">🎨 THEME</button>
-        <button id="audioBtn" class="action-btn">🔊 SFX</button>
-      </div>
+      <div class="stat-badge">⭐ SCORE: <span id="scoreVal">0</span></div>
+      <div class="stat-badge">🐍 LEN: <span id="lengthVal">12</span></div>
+      <button id="audioToggleBtn" class="audio-btn">🔊 SFX</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
     <button id="boostBtn" class="boost-btn">⚡</button>
 
+    <!-- Start Screen -->
     <div id="startScreen" class="overlay">
-      <h2 id="themeTitle">🌿 NATURAL SAFARI</h2>
-      <p>Drag finger to slither smoothly<br>Switch themes live anytime!</p>
-      <button id="startBtn" class="play-btn">START HUNT 🚀</button>
+      <h2>🐍 ROYAL SLITHER</h2>
+      <p>Drag finger or mouse to slither smoothly</p>
+      <div class="btn-group-vertical">
+        <button id="startBtn" class="modal-btn btn-primary">START GAME ▶</button>
+      </div>
     </div>
 
+    <!-- Game Over Screen with Retry, New Game, Exit -->
     <div id="gameOverScreen" class="overlay hidden">
       <h2>💥 ELIMINATED!</h2>
-      <p>Final Score: <span id="finalScore">0</span> PTS</p>
-      <button id="restartBtn" class="play-btn">TRY AGAIN 🔁</button>
+      <div class="score-banner">Final Score: <span id="finalScore">0</span> PTS</div>
+      
+      <div class="btn-group-vertical">
+        <button id="retryBtn" class="modal-btn btn-primary">🔄 RETRY</button>
+        <button id="newGameBtn" class="modal-btn btn-secondary">⚡ NEW GAME</button>
+        <button id="exitBtn" class="modal-btn btn-danger">🚪 MAIN MENU (EXIT)</button>
+      </div>
     </div>
   </div>
 
@@ -171,93 +232,24 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const arenaBox = document.getElementById("arenaBox");
     const scoreVal = document.getElementById("scoreVal");
     const lengthVal = document.getElementById("lengthVal");
     const startScreen = document.getElementById("startScreen");
     const gameOverScreen = document.getElementById("gameOverScreen");
     const finalScore = document.getElementById("finalScore");
+
     const startBtn = document.getElementById("startBtn");
-    const restartBtn = document.getElementById("restartBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const newGameBtn = document.getElementById("newGameBtn");
+    const exitBtn = document.getElementById("exitBtn");
     const boostBtn = document.getElementById("boostBtn");
-    const themeBtn = document.getElementById("themeBtn");
-    const audioBtn = document.getElementById("audioBtn");
-    const themeTitle = document.getElementById("themeTitle");
+    const audioToggleBtn = document.getElementById("audioToggleBtn");
 
     let animationId;
     let gameRunning = false;
     let score = 0;
     let isBoosting = false;
     let isMuted = false;
-
-    // --- 4 Natural & Eye-Friendly Color Palettes ---
-    const themes = [
-      {
-        name: "🌿 Natural Safari",
-        bg1: "#064e3b",
-        bg2: "#022c22",
-        grid: "rgba(255, 255, 255, 0.04)",
-        border: "#10b981",
-        player: "#f59e0b",
-        playerGlow: "rgba(245, 158, 11, 0.7)",
-        aiColors: ["#dc2626", "#0284c7", "#84cc16"],
-        foodColors: ["#ef4444", "#fbbf24", "#34d399", "#f43f5e"]
-      },
-      {
-        name: "🌊 Deep Ocean",
-        bg1: "#0c4a6e",
-        bg2: "#082f49",
-        grid: "rgba(56, 189, 248, 0.05)",
-        border: "#0284c7",
-        player: "#00f0ff",
-        playerGlow: "rgba(0, 240, 255, 0.7)",
-        aiColors: ["#f43f5e", "#fb923c", "#a855f7"],
-        foodColors: ["#38bdf8", "#67e8f9", "#f472b6", "#e0e7ff"]
-      },
-      {
-        name: "🌅 Sunset Glow",
-        bg1: "#4c0519",
-        bg2: "#2e020d",
-        grid: "rgba(251, 146, 60, 0.05)",
-        border: "#f43f5e",
-        player: "#fbbf24",
-        playerGlow: "rgba(251, 191, 36, 0.7)",
-        aiColors: ["#8b5cf6", "#06b6d4", "#ec4899"],
-        foodColors: ["#fb923c", "#f43f5e", "#fbbf24", "#c084fc"]
-      },
-      {
-        name: "🍬 Pastel Candy",
-        bg1: "#1e1b4b",
-        bg2: "#0f0e26",
-        grid: "rgba(192, 132, 252, 0.05)",
-        border: "#c084fc",
-        player: "#38bdf8",
-        playerGlow: "rgba(56, 189, 248, 0.7)",
-        aiColors: ["#f472b6", "#4ade80", "#facc15"],
-        foodColors: ["#f472b6", "#fb7185", "#38bdf8", "#a7f3d0"]
-      }
-    ];
-
-    let currentThemeIdx = 0;
-
-    function applyTheme(idx) {
-      const t = themes[idx];
-      arenaBox.style.borderColor = t.border;
-      themeTitle.textContent = t.name.toUpperCase();
-      themeTitle.style.color = t.border;
-      themeBtn.textContent = t.name.split(" ")[0] + " THEME";
-
-      if (playerSnake) {
-        playerSnake.primary = t.player;
-        playerSnake.glow = t.playerGlow;
-      }
-    }
-
-    themeBtn.addEventListener("click", () => {
-      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
-      applyTheme(currentThemeIdx);
-      playEatChime();
-    });
 
     function resize() {
       canvas.width = canvas.parentElement.clientWidth;
@@ -293,25 +285,26 @@
       if (isMuted || !audioCtx) return;
       const notes = [523.25, 659.25, 783.99, 1046.50];
       const note = notes[Math.floor(Math.random() * notes.length)];
-      playTone(note, 0.1, "sine", 0.12);
+      playTone(note, 0.09, "sine", 0.12);
     }
 
     function playCrashSound() {
       initAudio();
       if (isMuted || !audioCtx) return;
-      playTone(120, 0.4, "sawtooth", 0.25);
+      playTone(130, 0.35, "sawtooth", 0.22);
     }
 
-    audioBtn.addEventListener("click", () => {
+    audioToggleBtn.addEventListener("click", () => {
       isMuted = !isMuted;
-      audioBtn.textContent = isMuted ? "🔇 MUTED" : "🔊 SFX";
+      audioToggleBtn.textContent = isMuted ? "🔇 MUTED" : "🔊 SFX";
     });
 
-    // --- Food Orbs ---
+    // --- Fruit / Food Orbs ---
     let foods = [];
+    const fruitColors = ["#ef4444", "#fbbf24", "#34d399", "#f87171", "#fb923c"];
+
     function spawnFood(x, y) {
-      const curTheme = themes[currentThemeIdx];
-      const col = curTheme.foodColors[Math.floor(Math.random() * curTheme.foodColors.length)];
+      const col = fruitColors[Math.floor(Math.random() * fruitColors.length)];
       foods.push({
         x: x || Math.random() * (canvas.width - 24) + 12,
         y: y || Math.random() * (canvas.height - 24) + 12,
@@ -321,19 +314,18 @@
       });
     }
 
-    // --- Snake Physics ---
-    class SmoothSnake {
-      constructor(x, y, primaryColor, glowColor, isPlayer = false) {
+    // --- Snake Physics & Smooth Movement ---
+    class OrganicSnake {
+      constructor(x, y, primaryColor, isPlayer = false) {
         this.x = x;
         this.y = y;
         this.primary = primaryColor;
-        this.glow = glowColor;
         this.isPlayer = isPlayer;
         this.radius = 10;
         this.length = 12;
         this.body = [];
         this.angle = Math.random() * Math.PI * 2;
-        this.speed = 3.0;
+        this.speed = 2.9;
 
         for (let i = 0; i < this.length * 4; i++) {
           this.body.push({ x: this.x, y: this.y });
@@ -369,19 +361,17 @@
 
       draw() {
         ctx.save();
-        ctx.shadowColor = this.glow;
-        ctx.shadowBlur = 10;
 
         for (let i = this.body.length - 1; i >= 0; i -= 3) {
           const pt = this.body[i];
-          const segRadius = Math.max(3.5, this.radius - (i / this.body.length) * 5.5);
+          const segRadius = Math.max(3.5, this.radius - (i / this.body.length) * 5);
           
           ctx.fillStyle = this.primary;
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, segRadius, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, segRadius * 0.45, 0, Math.PI * 2);
           ctx.fill();
@@ -417,20 +407,20 @@
       foods = [];
       for (let i = 0; i < 35; i++) spawnFood();
 
-      const curTheme = themes[currentThemeIdx];
-      playerSnake = new SmoothSnake(canvas.width / 2, canvas.height / 2, curTheme.player, curTheme.playerGlow, true);
+      // Golden Python Player Snake
+      playerSnake = new OrganicSnake(canvas.width / 2, canvas.height / 2, "#fbbf24", true);
       touchTarget = { x: canvas.width / 2, y: canvas.height / 2 };
 
+      // Safari AI Snakes
       aiSnakes = [
-        new SmoothSnake(60, 60, curTheme.aiColors[0], curTheme.aiColors[0], false),
-        new SmoothSnake(canvas.width - 60, canvas.height - 60, curTheme.aiColors[1], curTheme.aiColors[1], false),
-        new SmoothSnake(canvas.width - 60, 60, curTheme.aiColors[2], curTheme.aiColors[2], false)
+        new OrganicSnake(60, 60, "#dc2626", false),
+        new OrganicSnake(canvas.width - 60, canvas.height - 60, "#0284c7", false),
+        new OrganicSnake(canvas.width - 60, 60, "#84cc16", false)
       ];
 
       score = 0;
       scoreVal.textContent = "0";
       lengthVal.textContent = "12";
-      applyTheme(currentThemeIdx);
     }
 
     function handlePointer(clientX, clientY) {
@@ -454,18 +444,18 @@
     boostBtn.addEventListener("mousedown", () => { isBoosting = true; });
     boostBtn.addEventListener("mouseup", () => { isBoosting = false; });
 
-    function drawThemeBackground() {
-      const curTheme = themes[currentThemeIdx];
+    // Safari Natural Background
+    function drawBackground() {
       const grad = ctx.createRadialGradient(
-        canvas.width / 2, canvas.height / 2, 20,
+        canvas.width / 2, canvas.height / 2, 30,
         canvas.width / 2, canvas.height / 2, canvas.width
       );
-      grad.addColorStop(0, curTheme.bg1);
-      grad.addColorStop(1, curTheme.bg2);
+      grad.addColorStop(0, "#065f46");
+      grad.addColorStop(1, "#064e3b");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.strokeStyle = curTheme.grid;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
       ctx.lineWidth = 1;
       const step = 32;
       for (let x = 0; x < canvas.width; x += step) {
@@ -486,22 +476,21 @@
       if (!gameRunning) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawThemeBackground();
+      drawBackground();
 
+      // Food items
       for (let i = foods.length - 1; i >= 0; i--) {
         let f = foods[i];
         f.pulse += 0.06;
-        const currentR = f.radius + Math.sin(f.pulse) * 1.2;
+        const currentR = f.radius + Math.sin(f.pulse) * 0.8;
 
         ctx.save();
-        ctx.shadowColor = f.color;
-        ctx.shadowBlur = 8;
         ctx.fillStyle = f.color;
         ctx.beginPath();
         ctx.arc(f.x, f.y, currentR, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
         ctx.beginPath();
         ctx.arc(f.x, f.y, currentR * 0.4, 0, Math.PI * 2);
         ctx.fill();
@@ -555,8 +544,15 @@
       gameOverScreen.classList.remove("hidden");
     }
 
+    // Button Listeners
     startBtn.addEventListener("click", startGame);
-    restartBtn.addEventListener("click", startGame);
+    retryBtn.addEventListener("click", startGame);
+    newGameBtn.addEventListener("click", startGame);
+
+    exitBtn.addEventListener("click", () => {
+      gameOverScreen.classList.add("hidden");
+      startScreen.classList.remove("hidden");
+    });
 
     initGame();
   </script>
