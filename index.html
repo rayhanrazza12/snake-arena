@@ -206,16 +206,15 @@
     <canvas id="gameCanvas"></canvas>
     <button id="boostBtn" class="boost-btn">⚡</button>
 
-    <!-- Start Screen -->
     <div id="startScreen" class="overlay">
       <h2>🐍 ROYAL SLITHER</h2>
       <p>Drag finger or mouse to slither smoothly</p>
       <div class="btn-group-vertical">
         <button id="startBtn" class="modal-btn btn-primary">START GAME ▶</button>
+        <button id="mainExitBtn" class="modal-btn btn-danger">🚪 EXIT GAME</button>
       </div>
     </div>
 
-    <!-- Game Over Screen with Retry, New Game, Exit -->
     <div id="gameOverScreen" class="overlay hidden">
       <h2>💥 ELIMINATED!</h2>
       <div class="score-banner">Final Score: <span id="finalScore">0</span> PTS</div>
@@ -223,7 +222,7 @@
       <div class="btn-group-vertical">
         <button id="retryBtn" class="modal-btn btn-primary">🔄 RETRY</button>
         <button id="newGameBtn" class="modal-btn btn-secondary">⚡ NEW GAME</button>
-        <button id="exitBtn" class="modal-btn btn-danger">🚪 MAIN MENU (EXIT)</button>
+        <button id="exitBtn" class="modal-btn btn-danger">🚪 MAIN MENU</button>
       </div>
     </div>
   </div>
@@ -239,6 +238,7 @@
     const finalScore = document.getElementById("finalScore");
 
     const startBtn = document.getElementById("startBtn");
+    const mainExitBtn = document.getElementById("mainExitBtn");
     const retryBtn = document.getElementById("retryBtn");
     const newGameBtn = document.getElementById("newGameBtn");
     const exitBtn = document.getElementById("exitBtn");
@@ -257,7 +257,7 @@
     }
     window.addEventListener("resize", resize);
 
-    // --- Audio Engine ---
+    // Audio Engine
     let audioCtx;
     function initAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -299,7 +299,7 @@
       audioToggleBtn.textContent = isMuted ? "🔇 MUTED" : "🔊 SFX";
     });
 
-    // --- Fruit / Food Orbs ---
+    // Foods
     let foods = [];
     const fruitColors = ["#ef4444", "#fbbf24", "#34d399", "#f87171", "#fb923c"];
 
@@ -314,7 +314,7 @@
       });
     }
 
-    // --- Snake Physics & Smooth Movement ---
+    // Snake Physics
     class OrganicSnake {
       constructor(x, y, primaryColor, isPlayer = false) {
         this.x = x;
@@ -407,11 +407,9 @@
       foods = [];
       for (let i = 0; i < 35; i++) spawnFood();
 
-      // Golden Python Player Snake
       playerSnake = new OrganicSnake(canvas.width / 2, canvas.height / 2, "#fbbf24", true);
       touchTarget = { x: canvas.width / 2, y: canvas.height / 2 };
 
-      // Safari AI Snakes
       aiSnakes = [
         new OrganicSnake(60, 60, "#dc2626", false),
         new OrganicSnake(canvas.width - 60, canvas.height - 60, "#0284c7", false),
@@ -444,7 +442,6 @@
     boostBtn.addEventListener("mousedown", () => { isBoosting = true; });
     boostBtn.addEventListener("mouseup", () => { isBoosting = false; });
 
-    // Safari Natural Background
     function drawBackground() {
       const grad = ctx.createRadialGradient(
         canvas.width / 2, canvas.height / 2, 30,
@@ -478,7 +475,6 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawBackground();
 
-      // Food items
       for (let i = foods.length - 1; i >= 0; i--) {
         let f = foods[i];
         f.pulse += 0.06;
@@ -544,8 +540,14 @@
       gameOverScreen.classList.remove("hidden");
     }
 
-    // Button Listeners
+    // Exit Button Action
+    function exitGameAction() {
+      window.history.back();
+      window.close();
+    }
+
     startBtn.addEventListener("click", startGame);
+    mainExitBtn.addEventListener("click", exitGameAction);
     retryBtn.addEventListener("click", startGame);
     newGameBtn.addEventListener("click", startGame);
 
