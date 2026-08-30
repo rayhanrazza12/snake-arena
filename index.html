@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cyber Slither: HD Neon Arena</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: #060814;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      padding: 8px;
+    }
+
+    .arena-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 94vh;
+      max-height: 680px;
+      background: #0a0e27;
+      border: 2px solid #00f0ff;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.35), inset 0 0 20px rgba(255, 0, 128, 0.2);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: rgba(6, 8, 20, 0.95);
+      border-bottom: 2px solid rgba(0, 240, 255, 0.3);
+      font-weight: 800;
+      font-size: 0.9rem;
+      z-index: 5;
+    }
+
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #scoreVal { color: #ffe600; text-shadow: 0 0 10px rgba(255, 230, 0, 0.6); }
+    #lengthVal { color: #00f0ff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.6); }
+
+    .audio-btn {
+      background: #151a3c;
+      border: 1px solid #00f0ff;
+      color: #00f0ff;
+      border-radius: 12px;
+      padding: 5px 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      flex: 1;
+      background: radial-gradient(circle at center, #101538, #050716);
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(6, 8, 20, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+      z-index: 20;
+    }
+
+    .overlay.hidden { display: none; }
+    .overlay h2 { font-size: 2.2rem; color: #ff007f; margin-bottom: 8px; text-shadow: 0 0 20px rgba(255, 0, 127, 0.8); }
+    .overlay p { color: #cbd5e1; font-size: 1rem; margin-bottom: 26px; line-height: 1.5; }
+
+    .play-btn {
+      background: linear-gradient(135deg, #00f0ff, #ff007f);
+      color: #000;
+      border: none;
+      padding: 16px 42px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+      transition: transform 0.1s;
+    }
+
+    .play-btn:active { transform: scale(0.95); }
+
+    .boost-btn {
+      position: absolute;
+      bottom: 22px;
+      right: 20px;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 2px solid #ff007f;
+      background: radial-gradient(circle, rgba(255, 0, 127, 0.5), rgba(15, 10, 30, 0.8));
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-size: 1.6rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
+      z-index: 10;
+    }
+
+    .boost-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 0, 127, 0.9);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="arena-wrapper">
+    <div class="top-bar">
+      <div class="stat-badge">⚡ <span id="scoreVal">0</span> PTS</div>
+      <div class="stat-badge">🐍 LEN: <span id="lengthVal">12</span></div>
+      <button id="audioToggleBtn" class="audio-btn">🔊 AUDIO</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    <button id="boostBtn" class="boost-btn">⚡</button>
+
+    <div id="startScreen" class="overlay">
+      <h2>🐍 CYBER SLITHER</h2>
+      <p>HD Neon Slither Arena<br>Drag finger to steer • Eat glowing energy orbs!</p>
+      <button id="startBtn" class="play-btn">START HUNT 🚀</button>
+    </div>
+
+    <div id="gameOverScreen" class="overlay hidden">
+      <h2>💥 ELIMINATED!</h2>
+      <p>Final Score: <span id="finalScore">0</span> PTS</p>
+      <button id="restartBtn" class="play-btn">TRY AGAIN 🔁</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const scoreVal = document.getElementById("scoreVal");
+    const lengthVal = document.getElementById("lengthVal");
+    const startScreen = document.getElementById("startScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalScore = document.getElementById("finalScore");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const boostBtn = document.getElementById("boostBtn");
+    const audioToggleBtn = document.getElementById("audioToggleBtn");
+
+    let animationId;
+    let gameRunning = false;
+    let score = 0;
+    let isBoosting = false;
+    let isMuted = false;
+
+    function resize() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight - 48;
+    }
+    window.addEventListener("resize", resize);
+
+    // --- HD Professional Audio Engine ---
+    let audioCtx;
+    let bgmInterval;
+    let bgmStep = 0;
+
+    const synthArp = [146.83, 174.61, 196.00, 220.00, 261.63, 220.00, 196.00, 174.61];
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, duration = 0.08, type = "sine", gainLvl = 0.1) {
+      if (isMuted || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(gainLvl, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+
+    // High Quality Melodic Chime on Eat
+    function playEatChime() {
+      initAudio();
+      if (isMuted || !audioCtx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      const randomNote = notes[Math.floor(Math.random() * notes.length)];
+      playTone(randomNote, 0.12, "sine", 0.15);
+      playTone(randomNote * 1.5, 0.08, "triangle", 0.06);
+    }
+
+    // Explosion Death Audio
+    function playCrashSound() {
+      initAudio();
+      if (isMuted || !audioCtx) return;
+      playTone(110, 0.45, "sawtooth", 0.3);
+      playTone(65, 0.6, "square", 0.25);
+    }
+
+    function startBGM() {
+      if (bgmInterval) clearInterval(bgmInterval);
+      bgmStep = 0;
+      bgmInterval = setInterval(() => {
+        if (!gameRunning || isMuted) return;
+        const note = synthArp[bgmStep % synthArp.length];
+        const boostPitch = isBoosting ? 1.5 : 1.0;
+        playTone(note * boostPitch, 0.15, "triangle", 0.04);
+        if (bgmStep % 2 === 0) playTone(300, 0.04, "sine", 0.015);
+        bgmStep++;
+      }, 150);
+    }
+
+    function stopBGM() {
+      if (bgmInterval) clearInterval(bgmInterval);
+    }
+
+    audioToggleBtn.addEventListener("click", () => {
+      isMuted = !isMuted;
+      audioToggleBtn.textContent = isMuted ? "🔇 MUTED" : "🔊 AUDIO";
+    });
+
+    // --- Eye-Friendly Glowing Energy Orbs ---
+    let foods = [];
+    const orbColors = [
+      { fill: "#00f0ff", glow: "rgba(0, 240, 255, 0.8)" },
+      { fill: "#ff007f", glow: "rgba(255, 0, 127, 0.8)" },
+      { fill: "#39ff14", glow: "rgba(57, 255, 20, 0.8)" },
+      { fill: "#ffe600", glow: "rgba(255, 230, 0, 0.8)" },
+      { fill: "#bf5af2", glow: "rgba(191, 90, 242, 0.8)" }
+    ];
+
+    function spawnFood(x, y) {
+      const col = orbColors[Math.floor(Math.random() * orbColors.length)];
+      foods.push({
+        x: x || Math.random() * (canvas.width - 24) + 12,
+        y: y || Math.random() * (canvas.height - 24) + 12,
+        radius: 4.5 + Math.random() * 2.5,
+        fill: col.fill,
+        glow: col.glow,
+        pulse: Math.random() * Math.PI * 2
+      });
+    }
+
+    // --- Snake Engine with Organic Curving ---
+    class HDCyberSnake {
+      constructor(x, y, primaryColor, glowColor, isPlayer = false) {
+        this.x = x;
+        this.y = y;
+        this.primary = primaryColor;
+        this.glow = glowColor;
+        this.isPlayer = isPlayer;
+        this.radius = 10;
+        this.length = 12;
+        this.body = [];
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = 3.0;
+
+        for (let i = 0; i < this.length * 5; i++) {
+          this.body.push({ x: this.x, y: this.y });
+        }
+      }
+
+      update(targetX, targetY, isBoost) {
+        let currentSpeed = isBoost && this.length > 5 ? this.speed * 1.85 : this.speed;
+
+        if (this.isPlayer) {
+          const dx = targetX - this.x;
+          const dy = targetY - this.y;
+          const targetAngle = Math.atan2(dy, dx);
+          
+          let diff = targetAngle - this.angle;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          this.angle += diff * 0.14;
+        } else {
+          if (Math.random() < 0.04) {
+            this.angle += (Math.random() - 0.5) * 1.4;
+          }
+        }
+
+        this.x += Math.cos(this.angle) * currentSpeed;
+        this.y += Math.sin(this.angle) * currentSpeed;
+
+        // Wrap around boundaries smoothly
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        if (this.y > canvas.height) this.y = 0;
+
+        this.body.unshift({ x: this.x, y: this.y });
+        while (this.body.length > this.length * 4) {
+          this.body.pop();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.shadowColor = this.glow;
+        ctx.shadowBlur = 12;
+
+        // 1. Fluid Segment Drawing with Gradient Taper
+        for (let i = this.body.length - 1; i >= 0; i -= 3) {
+          const pt = this.body[i];
+          const segRadius = Math.max(3.5, this.radius - (i / this.body.length) * 5.5);
+          
+          ctx.fillStyle = this.primary;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, segRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Inner metallic core glow
+          ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, segRadius * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 2. Head
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius + 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. Glowing Cyber Eyes
+        const eyeAngle1 = this.angle + 0.58;
+        const eyeAngle2 = this.angle - 0.58;
+        const eyeDist = this.radius * 0.7;
+
+        ctx.fillStyle = this.glow;
+        ctx.beginPath();
+        ctx.arc(this.x + Math.cos(eyeAngle1) * eyeDist, this.y + Math.sin(eyeAngle1) * eyeDist, 3, 0, Math.PI * 2);
+        ctx.arc(this.x + Math.cos(eyeAngle2) * eyeDist, this.y + Math.sin(eyeAngle2) * eyeDist, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    let playerSnake;
+    let aiSnakes = [];
+    let touchTarget = { x: 0, y: 0 };
+
+    function initGame() {
+      resize();
+      foods = [];
+      for (let i = 0; i < 35; i++) spawnFood();
+
+      playerSnake = new HDCyberSnake(canvas.width / 2, canvas.height / 2, "#00f0ff", "rgba(0, 240, 255, 0.9)", true);
+      touchTarget = { x: canvas.width / 2, y: canvas.height / 2 };
+
+      aiSnakes = [
+        new HDCyberSnake(60, 60, "#ff007f", "rgba(255, 0, 127, 0.9)", false),
+        new HDCyberSnake(canvas.width - 60, canvas.height - 60, "#39ff14", "rgba(57, 255, 20, 0.9)", false),
+        new HDCyberSnake(canvas.width - 60, 60, "#ffe600", "rgba(255, 230, 0, 0.9)", false)
+      ];
+
+      score = 0;
+      scoreVal.textContent = "0";
+      lengthVal.textContent = "12";
+    }
+
+    function handlePointer(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      touchTarget.x = clientX - rect.left;
+      touchTarget.y = clientY - rect.top;
+    }
+
+    window.addEventListener("touchmove", (e) => {
+      if (e.touches && e.touches[0]) handlePointer(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    window.addEventListener("touchstart", (e) => {
+      if (e.touches && e.touches[0]) handlePointer(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    window.addEventListener("mousemove", (e) => {
+      handlePointer(e.clientX, e.clientY);
+    });
+
+    boostBtn.addEventListener("touchstart", (e) => { e.preventDefault(); isBoosting = true; }, { passive: false });
+    boostBtn.addEventListener("touchend", () => { isBoosting = false; });
+    boostBtn.addEventListener("mousedown", () => { isBoosting = true; });
+    boostBtn.addEventListener("mouseup", () => { isBoosting = false; });
+
+    // Cyber Arena Background Grid
+    function drawCyberGrid() {
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.06)";
+      ctx.lineWidth = 1;
+      const step = 32;
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    // Main Update Loop
+    function update() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawCyberGrid();
+
+      // Energy Orbs Update & Draw
+      for (let i = foods.length - 1; i >= 0; i--) {
+        let f = foods[i];
+        f.pulse += 0.06;
+        const currentR = f.radius + Math.sin(f.pulse) * 1.2;
+
+        ctx.save();
+        ctx.shadowColor = f.glow;
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = f.fill;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, currentR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, currentR * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Player Eat Collision
+        const dist = Math.hypot(playerSnake.x - f.x, playerSnake.y - f.y);
+        if (dist < playerSnake.radius + currentR) {
+          foods.splice(i, 1);
+          score += 20;
+          playerSnake.length += 1;
+          scoreVal.textContent = score;
+          lengthVal.textContent = playerSnake.length;
+          playEatChime();
+          spawnFood();
+        }
+      }
+
+      // Player Snake
+      playerSnake.update(touchTarget.x, touchTarget.y, isBoosting);
+      playerSnake.draw();
+
+      // AI Rival Snakes
+      aiSnakes.forEach(ai => {
+        ai.update(0, 0, false);
+        ai.draw();
+
+        // Player Head vs AI Body Collision
+        for (let j = 0; j < ai.body.length; j += 4) {
+          const b = ai.body[j];
+          if (Math.hypot(playerSnake.x - b.x, playerSnake.y - b.y) < playerSnake.radius + 3) {
+            endGame();
+            return;
+          }
+        }
+      });
+
+      animationId = requestAnimationFrame(update);
+    }
+
+    function startGame() {
+      initAudio();
+      startBGM();
+      initGame();
+      startScreen.classList.add("hidden");
+      gameOverScreen.classList.add("hidden");
+      gameRunning = true;
+      update();
+    }
+
+    function endGame() {
+      gameRunning = false;
+      stopBGM();
+      playCrashSound();
+      cancelAnimationFrame(animationId);
+      finalScore.textContent = score;
+      gameOverScreen.classList.remove("hidden");
+    }
+
+    startBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", startGame);
+
+    initGame();
+  </script>
+</body>
+</html>
